@@ -1,0 +1,15 @@
+#!/bin/sh
+# nb - Nota Bene, a quick note-taking tool for Emacs
+#
+# nb <search terms>
+
+cd ~/NB
+
+FILES=$(find . -type f -a ! -name "*~" -print)
+
+for rx in "$@"; do
+  FILES=$(echo "$FILES" | xargs grep -la "$rx")
+done
+
+echo -n "$FILES" | sed 's:^\./::'
+[ -n "$FILES" ] && echo || exit 1

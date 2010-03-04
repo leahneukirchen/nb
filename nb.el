@@ -71,6 +71,25 @@
   (find-file (button-get button 'file))
   (nb-mode 1))
 
+(defun nb-find-at-point ()
+  (interactive)
+  (if (save-excursion
+        (re-search-backward "\\[\\[\\|\\]\\]" (point-at-bol) t)
+        (looking-at "\\[\\[\\(.*?\\)\\]\\]"))
+      (nb (match-string 1))
+    (insert "\n")))
+
+(defun nb-find-at-mouse (event)
+  (interactive "e")
+  (if (save-excursion
+        (set-buffer (window-buffer
+                     (posn-window (event-start event))))
+        (goto-char (posn-point (event-start event)))
+        (re-search-backward "\\[\\[\\|\\]\\]" (point-at-bol) t)
+        (looking-at "\\[\\[\\(.*?\\)\\]\\]"))
+      (nb (match-string 1))
+    (mouse-set-mark event)))
+
 (define-minor-mode nb-mode
   "Minor mode for quick note taking."
   nil
@@ -78,5 +97,8 @@
   '()
   (add-hook 'before-save-hook 'nb-rename-buffer-accordingly t t)
   (add-hook 'after-save-hook 'nb-remove-empty-files t t))
+
+(define-key nb-mode-map [return] 'nb-find-at-point)
+(define-key nb-mode-map [mouse-1] 'nb-find-at-mouse)
 
 (provide 'nb)

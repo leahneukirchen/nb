@@ -40,29 +40,27 @@
           (insert terms)
           (insert "\n\n")
           (set-buffer-modified-p nil))
-      (if (= 2 (length (split-string output "\n")))
-          ;; one match
-          (progn
-            (find-file (concat "~/NB/" (substring output 0 -1)))
-            (nb-mode 1))
       (switch-to-buffer "*nb-search*")
       (delete-region (point-min) (point-max))
       (insert output)
       (nb-make-links)
       (goto-char (point-min))
       (setq buffer-read-only t)
-      ))))
+      (if (= 2 (length (split-string output "\n")))
+          ;; only one hit
+          (push-button)))))
 
 (defun nb-make-links ()
   (interactive)
   (goto-char (point-min))
   (while (not (eobp))
     (when (looking-at "\\S-")
-      (let ((button (make-button (point-at-bol) (point-at-eol))))
+      (skip-syntax-forward "^-")
+      (let ((button (make-button (point-at-bol) (point))))
         (button-put button 'action #'nb-find-note)
         (button-put button 'file
                     (concat "~/NB/"
-                            (buffer-substring (point-at-bol) (point-at-eol))))
+                            (buffer-substring (point-at-bol) (point))))
         ))
     (forward-line)))
 

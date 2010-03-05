@@ -5,7 +5,7 @@
 
 cd ~/NB
 
-FILES=$(find . -type f -a ! -name "*~" -print)
+FILES=$(ls -1t | grep -v '~$')
 
 for rx in "$@"; do
   FILES=$(echo "$FILES" | xargs grep -la "$rx")
@@ -14,7 +14,7 @@ done
 for f in $FILES; do
   export HEAD=$(tail -n+2 $f | head -c80 | tr -s '\n\t' ' ')
   stat -c "%n %y" $f | awk '{printf("%-69s %s\n",
-          substr($1 "  " ENVIRON["HEAD"], 3, 69), $2) }'
+          substr($1 "  " ENVIRON["HEAD"], 0, 69), $2) }'
 done
 
 [ -n "$FILES" ] || exit 1

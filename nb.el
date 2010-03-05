@@ -41,6 +41,7 @@
           (insert "\n\n")
           (set-buffer-modified-p nil))
       (switch-to-buffer "*nb-search*")
+      (setq buffer-read-only nil)
       (delete-region (point-min) (point-max))
       (insert output)
       (nb-make-links)

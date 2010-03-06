@@ -1,0 +1,37 @@
+#!/bin/sh
+# nbx - Nota Bene, a quick note-taking tool for Emacs
+#
+# nbx <search terms>
+
+cd ~/NB
+
+IFS="
+"
+
+function nbe() {
+  HEAD=$(head -n1 "$1" 2>/dev/null)
+  ${EDITOR:-vi} "$1"
+  HEAD2=$(head -n1 "$1" 2>/dev/null)
+
+  if [ ! -s "$1" ] || [ "$1" = ".new" -a $(wc -l <"$1") = 1 ]; then
+    rm "$1"
+    exit
+  fi
+
+  if [ "$HEAD" != "$HEAD2" -o "$1" = ".new" ]; then
+    mv "$1" $(echo -n "$HEAD2" | tr -c 'a-zA-Z0-9.-' '-')
+  fi
+}
+
+HITS=$(nb "$@")
+if [ $? = 1 ]; then
+  echo "$@" >.new
+  nbe .new
+elif [ $(echo "$HITS" | wc -l) = 1 ]; then
+  nbe $(echo "$HITS" | cut -d' ' -f1)
+else
+  select hit in $(echo "$HITS" | cut -b 1-64,70-80); do
+    nbe $(echo "$hit" | cut -d' ' -f1)
+    break
+  done
+fi

@@ -8,12 +8,12 @@ cd ~/NB
 FILES=$(ls -1t | grep -v '~$')
 
 for rx in "$@"; do
-  FILES=$(echo "$FILES" | xargs grep -la "$rx")
+  FILES=$(echo "$FILES" | xargs grep -la -e "$rx")
 done
 
 for f in $FILES; do
-  export HEAD=$(tail -n+2 $f | head -c80 | tr -s '\n\t' ' ')
-  stat -c "%n %y" $f | awk '{printf("%-69s %s\n",
+  export HEAD=$(tail -n+2 ./"$f" | head -c80 | tr -s '\n\t' ' ')
+  stat -c "%n %y" -- "$f" | awk '{printf("%-69s %s\n",
           substr($1 "  " ENVIRON["HEAD"], 0, 69), $2) }'
 done
 

@@ -8,7 +8,7 @@ cd ~/NB
 FILES=$(ls -1t | grep -v '~$')
 
 for rx in "$@"; do
-  FILES=$(echo "$FILES" | xargs grep -la -e "$rx")
+  FILES=$(echo "$FILES" | xargs grep -la -i -e "$rx")
 done
 
 for f in $FILES; do

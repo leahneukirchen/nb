@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+# nb-sync - Sync Nota Bene with Simplenote
+#
+# This is not very efficient as it pulls all notes every time.
+# The most recently modified note wins.
+#
+# Setup:
+# echo "machine simple-note.appspot.com login XXX@YYY password ZZZ" >>~/.netrc
+#
+# Use  nb-sync -n  to only show what happens.
+#
+#   <- server wins
+#   -> client wins
+#
+$n = ARGV[0] == "-n"
+
+begin
+  require 'rubygems'
+rescue LoadError
+end
+require 'simplenote'
+
+s = SimpleNote.new
+
+s.login(*File.read(File.expand_path("~/.netrc"))[
+   /^machine simple-note.appspot.com .*/].split.values_at(3, 5))
+
+seen = []
+
+def prefix(title)
+  File.join(File.expand_path("~/NB"), title)
+end
+
+s.get_index.each { |post|
+  note = s.get_note(post["key"])
+
+  body = note.to_s
+  title = body[/\A.*$/].gsub(/[^a-z0-9.-]/i, "-")
+
+  seen << title
+
+  file = prefix(title)
+  mtime = Time.at(note.headers["note-smodifydate"].to_f)
+
+  if !File.exist?(file) || File.mtime(file) < mtime
+    next  if (File.read(file) rescue nil) == body
+
+    puts "<- #{title}"
+    unless $n
+      File.open(file, "wb") { |out| out << body }
+      File.utime(mtime, mtime, file)
+    end
+  else
+    next  if File.read(file) == body
+
+    puts "-> #{title}"
+    unless $n
+      s.update_note(post["key"], File.read(file))
+    end
+  end
+}
+
+(Dir.entries(prefix("")).delete_if { |x| x =~ (/^\.|\~$/) } - seen).each { |post|
+  puts "-> #{post}"
+  unless $n
+    s.create_note(File.read(prefix(post)))
+  end
+}
